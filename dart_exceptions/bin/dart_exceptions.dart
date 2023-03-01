@@ -1,49 +1,70 @@
 import 'controller/bank_controller.dart';
 import 'model/account.dart';
+import 'exceptions/bank_controller_exceptions.dart';
 
-// void main() {
-//   // Criando o banco
-//   BankController bankController = BankController();
+import 'dart:math';
 
-//   // Adicionando contas
-//   bankController.addAccount(
-//       id: "Leandro",
-//       account:
-//           Account(name: "Leandro Ikehara", balance: 400, isAuthenticated: true));
+void testingNullSafety() {
+  Account? myAccount =
+      Account(name: "Leandro Ikehara", balance: 300, isAuthenticated: true);
 
-//   bankController.addAccount(
-//       id: "Aninha",
-//       account:
-//           Account(name: "Ana Paula", balance: 600, isAuthenticated: true));
+  Random rng = Random();
+  if (rng.nextInt(10) % 2 == 0) {
+    myAccount.createdAt = DateTime.now();
+  }
 
-//   // Fazendo transferência
-//   bool result = bankController.makeTransfer(
-//       idSender: "Aninha", idReceiver: "Leandro", amount: 700);
+  // Não funciona
+  // print(myAccount.createdAt.day);
 
-//   // Observando resultado
-//   print(result);
-// }
+  // Funciona mas é má prática pois pode levantar erro
+  // print(myAccount.createdAt!.day);
+
+  if (myAccount.createdAt != null) {
+    print(myAccount.createdAt?.day);
+  } else {
+    print("Data Nula");
+  }
+
+  // Explicar que é uma situação que válida encadear "?"
+  // print(myAccount?.createdAt?.day); // Explicar warning Flow Analisys
+  Account? otherAccount;
+  print(otherAccount?.createdAt?.day);
+}
 
 void main() {
-  int i = 0;
-  print("Started Main");
-  functionOne();
-  print("Finished Main");
-}
+  testingNullSafety();
 
-functionOne() {
-  int j = 25;
-  print("Started F01");
-  functionTwo(j);
-  print("Finished F01");
-}
+  // Criando o banco
+  BankController bankController = BankController();
 
-functionTwo(int otherJ) {
-  int k = 0;
-  print("Started F02");
-  for (int i = 1; i <= 5; i++) {
-    print(i);
+  Account testAccount = Account(name: "", balance: 0, isAuthenticated: true);
+
+  // Adicionando contas
+  bankController.addAccount(
+      id: "Leandro",
+      account:
+          Account(name: "Leandro Ikehara", balance: 400, isAuthenticated: true));
+
+  bankController.addAccount(
+      id: "Ana",
+      account:
+          Account(name: "Ana Paula", balance: 600, isAuthenticated: true));
+
+  // Fazendo transferência
+  try {
+    bankController.makeTransfer(
+        idSender: "Ana", idReceiver: "Leandro", amount: 200);
+
+    print("Transação concluída com sucesso");
+  } on SenderIdInvalidException catch (e) {
+    print(e.message);
+  } on ReceiverIdInvalidException catch (e) {
+    print(e);
+  } on SenderNotAuthenticatedException catch (e) {
+    print(e);
+  } on SenderBalanceLowerThanAmountException catch (e) {
+    print(e);
+  } catch (e) {
+    print("Erro desconhecido.");
   }
-  otherJ = 50;
-  print("Finished F02");
 }
